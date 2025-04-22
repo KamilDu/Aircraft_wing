@@ -1,0 +1,67 @@
+@startuml
+autonumber
+actor  Actor #green
+Actor -> Frontend  	: вводит данные и\nнажимает кнопку поиска
+activate Frontend    
+Frontend -> Middleware : Get-запрос для получения списка рейсов
+activate  Middleware
+Middleware -> Middleware: валидация\nзапроса
+
+alt Некорректный запрос
+Frontend <-- Middleware: 400 Bad request
+Actor	<-- Frontend   : Сообщение “Введите корректные данные”.
+end
+
+Middleware -> Backend  : Get-запрос для получения списка рейсов
+deactivate Middleware
+activate Backend
+database	Database
+Backend  -> Database   : SQl-запрос для получения списка рейсов
+activate Database
+
+alt Подходящих рейсов нет
+Backend  <-- Database  : Передает пустой список
+Frontend <-- Backend   : 200 ok, json  пустой
+Actor	<-- Frontend  : Сообщение “Подходящих рейсов нет”.
+
+end
+
+Backend  <-- Database  : SQl-ответ со списками рейсов
+deactivate Database
+Frontend <-- Backend   : 200 ok, json с данными рейсов
+deactivate Backend
+Actor	<-- Frontend  : Отображает список доступных рейсов
+
+alt Изменения параметров поиска
+Actor -> Frontend  	: корректирует параметры и\nнажимает кнопку поиска
+Frontend -> Middleware : Get-запрос для получения списка рейсов
+activate  Middleware
+Middleware -> Middleware: валидация\nзапроса
+Middleware -> Backend  : Get-запрос для получения списка рейсов
+deactivate  Middleware
+activate Backend
+Backend  -> Database   : SQl-запрос для получения списка рейсов
+activate Database
+Backend  <-- Database  : SQl-ответ со списками рейсов
+deactivate Database
+Frontend <-- Backend   : 200 ok, json с данными рейсов
+deactivate Backend
+Actor	<-- Frontend  : Отображает список доступных рейсов
+end
+
+Actor -> Frontend  	: применяет фильтрацию или сортировку
+ Frontend ->  Frontend: Применение фильтрации\nили сортировки
+Actor	<-- Frontend  : отображает доступные рейсы\nпо фильтру или сортировке
+Actor -> Frontend  	: кликает на подходящий рейс
+Frontend -> Middleware : GET-запрос для получения детальной информации о рейсе
+Middleware -> Middleware: валидация\nзапроса
+Middleware -> Backend  : GET-запрос для получения детальной информации о рейсе
+Backend  -> Database   : SQL-запрос детальной информации о рейс
+Backend  <-- Database  : SQl-ответ с детальной информацией
+Frontend <-- Backend   : 200 ok, json с данными рейсов
+Actor	<-- Frontend  : отображение детальной информации
+
+
+@enduml,
+
+
